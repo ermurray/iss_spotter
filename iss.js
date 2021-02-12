@@ -13,4 +13,49 @@ const fetchMyIp = function(callback) {
   });
 };
 
-module.exports = { fetchMyIp };
+const fetchCoordsByIp = function(ip, callback) {
+  request(`https://freegeoip.app/json/${ip}`, (error, response, body) => {
+    if (error) {
+      return callback(error, null);
+    } else if (response.statusCode !== 200) {
+      return callback(Error(`${response.statusCode} when fetching coordinates response: ${body}`), null);
+    } else {
+      const { latitude, longitude } = JSON.parse(body);
+      return callback(null, { latitude, longitude });
+    }
+  });
+};
+
+const fetchISSFlyOverTimes = function(coords, callback) {
+  request(`http://api.open-notify.org/iss-pass.json?lat=${coords.latitude}&lon=${coords.longitude}`, (error, response, body) => {
+    if (error) {
+      return callback(error, null);
+    } else if (response.statusCode !== 200) {
+      return callback(Error(`${response.statusCode} when fetching fly over times response: ${body}`), null);
+    } else {
+      const passes = JSON.parse(body);
+      return callback(null, passes);
+    }
+  });
+};
+
+const nextISSTimesForMyLocation = function(callback) {
+  fetchMyIp((error, ip) => {
+    if (error) {
+      console.log(error);
+      return;
+    } else {
+      console.log('It Worked! returned IP:' , ip);
+      return ip;
+    }
+  });
+  
+};
+
+
+
+module.exports = {
+  fetchMyIp,
+  fetchCoordsByIp,
+  fetchISSFlyOverTimes
+};
